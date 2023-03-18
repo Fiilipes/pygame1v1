@@ -29,22 +29,17 @@ pygame.display.set_caption(
 clock = pygame.time.Clock()
 game_active = False
 step_size = 7
-player1_falling = False
-player1_inair = False
-player1_running = False
-left = False
 play_button_size = 0.8
 
 player_font = pygame.font.SysFont("comicsans", 50, True)
 button_font = pygame.font.SysFont("comicsans", 100, True)
 
-player1_text = player_font.render("P1", True, "blue")
 
 """ Ground """
 ground_height = screen_size[1] - 88
 ground_surf = pygame.transform.scale_by(
     pygame.image.load("graphics/ground.png"),  # image url
-    1                                        # scale
+    1                                          # scale
 )
 ground_rect = ground_surf.get_rect(midtop=(
     screen_size[0]//2,
@@ -55,10 +50,12 @@ ground_right = screen_size[0] // 2 + ground_rect.width // 2
 
 
 player1 = Player(
-    "blue",
-    "comicsans",
-    50,
-    "P1",
+    {
+        "text": "P1",
+        "color": "blue",
+        "font_name": "comicsans",
+        "font_size": 50
+    },
     "graphics/player/idle/adventurer-idle-00.png",
     screen_size,
     ground_height
@@ -71,17 +68,17 @@ def animation():
     elif keys[pygame.K_d]:
         player1.left = False
 
-    if player1_inair: # Jump
+    if player1.inair: # Jump
         player1.index += 0.03
         if player1.index >= len(jump_list): player1.index = 0
         player1.surface.surf = jump_list[int(player1.index)]
 
-    elif player1_running: # Run
+    elif player1.running: # Run
         player1.index += 0.16
         if player1.index >= len(run_list): player1.index = 0
         player1.surface.surf = run_list[int(player1.index)]
 
-    elif player1_rect.bottom == ground_height: # Idle
+    elif player1.surface.rect.bottom == ground_height: # Idle
         player1.index += 0.07
         if player1.index >= len(idle_list): player1.index = 0
         player1.surface.surf = idle_list[int(player1.index)]
@@ -113,10 +110,6 @@ jump3 = pygame.transform.scale_by(pygame.image.load("graphics/player/jump/advent
 jump_list = [jump2, jump3]
 
 
-player_index = 0
-player1_gravitation = 0
-player1_surf = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-00.png"), 4)
-player1_rect = player1_surf.get_rect(midbottom=(screen_size[0]//4, ground_height))
 
 exit_button_surf = pygame.transform.scale_by(pygame.image.load("graphics/exit_button.png"), 0.04)
 exit_button_rect = exit_button_surf.get_rect(topright=(screen_size[0] - 40, 40))
@@ -151,33 +144,33 @@ while running:
     if game_active:
         if keys[pygame.K_a]:
             player1.surface.rect.x -= step_size
-            player1_running = True
+            player1.running = True
         elif keys[pygame.K_d]:
             player1.surface.rect.x += step_size
-            player1_running = True
+            player1.running = True
         else:
-            player1_running = False
+            player1.running = False
 
         player1.gravitation += 10 * 0.08
         player1.surface.rect.y += player1.gravitation
 
-        if ground_height < player1.surface.rect.bottom and on_platform(player1.surface.rect) and not player1_falling:
+        if ground_height < player1.surface.rect.bottom and on_platform(player1.surface.rect) and not player1.falling:
             player1.surface.rect.bottom = ground_height
             player1.gravitation = 0
 
         if not on_platform(player1.surface.rect) or player1.surface.rect.bottom < ground_height:
-            player1_inair = True
+            player1.inair = True
         else:
-            player1_inair = False
+            player1.inair = False
 
         if ground_height < player1.surface.rect.bottom:
-            player1_falling = True
+            player1.falling = True
         else:
-            player1_falling = False
+            player1.falling = False
 
         if player1.surface.rect.top > screen_size[1]: # Death
-            player1.surface.rect.midbottom = (screen_size[0] // 2, ground_height - player1_gravitation)
-            player1_falling = False
+            player1.surface.rect.midbottom = (screen_size[0] // 2, ground_height - player1.gravitation)
+            player1.falling = False
             game_active = False
 
         player1_text_rect = player1.text.get_rect("midbottom",player1.surface.rect.centerx, player1.surface.rect.top + 10)

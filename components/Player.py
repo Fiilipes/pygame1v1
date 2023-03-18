@@ -1,16 +1,18 @@
 import pygame
 
 class Player:
-    def __init__(self, color, font_name, font_size, text, image, screen_size, ground_height):
+    def __init__(self, text, image, screen_size, ground_height):
         self.gravitation = 0
-        self.text = text
         self.inair = False
         self.running = False
         self.falling = False
         self.left = False
         self.index = 0
         self.surface = self.Surface(image, screen_size, ground_height)
-        self.text = self.Text(color, font_name, font_size, text, screen_size)
+        self.text = self.Text(text, screen_size)
+
+
+
 
     class Surface:
         def __init__(self, image, screen_size, ground_height):
@@ -18,11 +20,11 @@ class Player:
             self.rect = self.surf.get_rect(midbottom=(screen_size[0]//4, ground_height))
 
     class Text:
-        def __init__(self, color, font_name, font_size, text, screen_size):
-            self.font = pygame.font.SysFont(font_name, font_size, True)
-            self.text = text
-            self.color = color
-            self.font_size = font_size
+        def __init__(self, text, screen_size):
+            self.font = pygame.font.SysFont(text["font_name"], text["font_size"], True)
+            self.text = text["text"]
+            self.color = text["color"]
+            self.font_size = text["font_size"]
             self.text = self.font.render(self.text, True, self.color)
 
         def get_rect(self, position, x, y):
