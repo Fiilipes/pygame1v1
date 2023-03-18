@@ -1,6 +1,7 @@
 import pygame  # pygame module
 import ctypes  # module for getting users data
-
+# import class Player from components\Player.py
+from components.Player import Player
 
 
 def on_platform(player_rect):
@@ -52,18 +53,8 @@ ground_rect = ground_surf.get_rect(midtop=(
 ground_left = screen_size[0] // 2 - ground_rect.width // 2
 ground_right = screen_size[0] // 2 + ground_rect.width // 2
 
-class Player:
-    def __init__(self):
-        self.gravitation = 0
-        self.inair = False
-        self.running = False
-        self.falling = False
-        self.left = False
-        self.index = 0
-        self.surf = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-00.png"), 4)
-        self.rect = self.surf.get_rect(midbottom=(screen_size[0]//4, ground_height))
 
-player1 = Player()
+player1 = Player("graphics/player/run/adventurer-run-00.png", screen_size, ground_height)
 
 def animation():
 
