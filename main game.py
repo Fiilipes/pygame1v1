@@ -7,6 +7,29 @@ from components.Player import Player
 def on_platform(player_rect):
     return ground_right > player_rect.centerx > ground_left
 
+def physics_platform(player):
+    global game_active
+    player.gravitation += 10 * 0.08
+    player.surface.rect.y += player.gravitation
+
+    if ground_height < player.surface.rect.bottom and on_platform(player.surface.rect) and not player.falling:
+        player.surface.rect.bottom = ground_height
+        player.gravitation = 0
+
+    if not on_platform(player.surface.rect) or player.surface.rect.bottom < ground_height:
+        player.inair = True
+    else:
+        player.inair = False
+
+    if ground_height < player.surface.rect.bottom:
+        player.falling = True
+    else:
+        player.falling = False
+
+    if player.surface.rect.top > screen_size[1]:  # Death
+        player.surface.rect.midbottom = (screen_size[0] // 2, ground_height - player.gravitation)
+        player.falling = False
+        game_active = False
 
 user32 = ctypes.windll.user32  # get width and height of the window
 
@@ -61,33 +84,40 @@ player1 = Player(
     ground_height
 )
 
-def animation():
+player2 = Player(
+    {
+        "text": "P2",
+        "color": "red",
+        "font_name": "comicsans",
+        "font_size": 50
+    },
+    "graphics/player/idle/adventurer-idle-00.png",
+    screen_size,
+    ground_height
+)
 
-    if keys[pygame.K_a]:
-        player1.left = True
-    elif keys[pygame.K_d]:
-        player1.left = False
+def animation(player):
 
-    if player1.inair: # Jump
-        player1.index += 0.03
-        if player1.index >= len(jump_list): player1.index = 0
-        player1.surface.surf = jump_list[int(player1.index)]
+    if player.inair: # Jump
+        player.index += 0.03
+        if player.index >= len(jump_list): player.index = 0
+        player.surface.surf = jump_list[int(player.index)]
 
-    elif player1.running: # Run
-        player1.index += 0.16
-        if player1.index >= len(run_list): player1.index = 0
-        player1.surface.surf = run_list[int(player1.index)]
+    elif player.running: # Run
+        player.index += 0.16
+        if player.index >= len(run_list): player.index = 0
+        player.surface.surf = run_list[int(player.index)]
 
-    elif player1.surface.rect.bottom == ground_height: # Idle
-        player1.index += 0.07
-        if player1.index >= len(idle_list): player1.index = 0
-        player1.surface.surf = idle_list[int(player1.index)]
+    elif player.surface.rect.bottom == ground_height: # Idle
+        player.index += 0.07
+        if player.index >= len(idle_list): player.index = 0
+        player.surface.surf = idle_list[int(player.index)]
 
 
-    if player1.left:
-        player1.surface.surf = pygame.transform.flip(player1.surface.surf, True, False)
+    if player.left:
+        player.surface.surf = pygame.transform.flip(player.surface.surf, True, False)
     else:
-        player1.surface.surf = pygame.transform.flip(player1.surface.surf, False, False)
+        player.surface.surf = pygame.transform.flip(player.surface.surf, False, False)
 
 run0 = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-00.png"), 4)
 run1 = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-01.png"), 4)
@@ -109,6 +139,8 @@ jump2 = pygame.transform.scale_by(pygame.image.load("graphics/player/jump/advent
 jump3 = pygame.transform.scale_by(pygame.image.load("graphics/player/jump/adventurer-jump-03.png"), 4)
 jump_list = [jump2, jump3]
 
+player2.surface.rect.midbottom = (screen_size[0] - screen_size[0]//4, ground_height)
+player2.left = True
 
 
 exit_button_surf = pygame.transform.scale_by(pygame.image.load("graphics/exit_button.png"), 0.04)
@@ -129,6 +161,8 @@ while running:
             if game_active:
                 if event.key == pygame.K_w and player1.surface.rect.bottom == ground_height and on_platform(player1.surface.rect):
                     player1.gravitation = -21
+                if event.key == pygame.K_UP and player2.surface.rect.bottom == ground_height and on_platform(player2.surface.rect):
+                    player2.gravitation = -21
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if not game_active:
@@ -145,42 +179,44 @@ while running:
         if keys[pygame.K_a]:
             player1.surface.rect.x -= step_size
             player1.running = True
+            player1.left = True
         elif keys[pygame.K_d]:
             player1.surface.rect.x += step_size
             player1.running = True
+            player1.left = False
         else:
             player1.running = False
 
-        player1.gravitation += 10 * 0.08
-        player1.surface.rect.y += player1.gravitation
-
-        if ground_height < player1.surface.rect.bottom and on_platform(player1.surface.rect) and not player1.falling:
-            player1.surface.rect.bottom = ground_height
-            player1.gravitation = 0
-
-        if not on_platform(player1.surface.rect) or player1.surface.rect.bottom < ground_height:
-            player1.inair = True
+        if keys[pygame.K_LEFT]:
+            player2.surface.rect.x -= step_size
+            player2.running = True
+            player2.left = True
+        elif keys[pygame.K_RIGHT]:
+            player2.surface.rect.x += step_size
+            player2.running = True
+            player2.left = False
         else:
-            player1.inair = False
+            player2.running = False
 
-        if ground_height < player1.surface.rect.bottom:
-            player1.falling = True
-        else:
-            player1.falling = False
-
-        if player1.surface.rect.top > screen_size[1]: # Death
-            player1.surface.rect.midbottom = (screen_size[0] // 2, ground_height - player1.gravitation)
-            player1.falling = False
-            game_active = False
-
-        player1_text_rect = player1.text.get_rect("midbottom",player1.surface.rect.centerx, player1.surface.rect.top + 10)
+        physics_platform(player1)
+        physics_platform(player2)
 
         screen.blit(ground_surf, ground_rect)
-        animation()
+
+        animation(player1)
         screen.blit(player1.surface.surf, player1.surface.rect)
         screen.blit(player1.text.text, player1.text.get_rect("midbottom",player1.surface.rect.centerx, player1.surface.rect.top))
+        animation(player2)
+        screen.blit(player2.surface.surf, player2.surface.rect)
+        screen.blit(player2.text.text, player1.text.get_rect("midbottom", player2.surface.rect.centerx, player2.surface.rect.top))
 
     else:
+        player1.surface.rect.midbottom = (screen_size[0] // 4, ground_height)
+        player1.left = False
+
+        player2.surface.rect.midbottom = (screen_size[0] - screen_size[0] // 4, ground_height)
+        player2.left = True
+
         play_button_surf = pygame.transform.scale_by(pygame.image.load("graphics/play.png"), play_button_size)
         play_button_rect = play_button_surf.get_rect(center=(screen_size[0] // 2, screen_size[1] // 2))
 
