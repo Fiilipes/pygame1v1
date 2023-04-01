@@ -1,23 +1,23 @@
 import pygame
 
 class Player:
-    def __init__(self, text, image, screen_size, ground_height):
+    def __init__(self, text, image, screen_size, ground_height, spawn_pos):
         self.gravitation = 0
         self.inair = False
         self.running = False
         self.falling = False
         self.left = False
         self.index = 0
-        self.surface = self.Surface(image, screen_size, ground_height)
+        self.surface = self.Surface(image, screen_size, ground_height, spawn_pos)
         self.text = self.Text(text, screen_size)
 
 
 
 
     class Surface:
-        def __init__(self, image, screen_size, ground_height):
+        def __init__(self, image, screen_size, ground_height, spawn_pos):
             self.surf = pygame.transform.scale_by(pygame.image.load(image), 4)
-            self.rect = self.surf.get_rect(midbottom=(screen_size[0]//4, ground_height))
+            self.rect = self.surf.get_rect(midbottom=spawn_pos["pos"])
 
     class Text:
         def __init__(self, text, screen_size):
