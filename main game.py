@@ -81,7 +81,11 @@ player1 = Player(
     },
     "graphics/player/idle/adventurer-idle-00.png",
     screen_size,
-    ground_height
+    ground_height,
+    {
+    "facing": "right",
+    "pos": screen_size[0]//4, ground_height
+    }
 )
 
 player2 = Player(
@@ -93,7 +97,11 @@ player2 = Player(
     },
     "graphics/player/idle/adventurer-idle-00.png",
     screen_size,
-    ground_height
+    ground_height,
+    {
+    "facing": "left",
+    "pos": screen_size[0] - screen_size[0]//4, ground_height
+    }
 )
 
 def animation(player):
