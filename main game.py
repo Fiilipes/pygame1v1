@@ -83,7 +83,7 @@ player1 = Player(
     screen_size,
     ground_height,
     {
-    "facing": "right",
+    "facing_l": False,
     "pos": screen_size[0]//4, ground_height
     }
 )
@@ -99,7 +99,7 @@ player2 = Player(
     screen_size,
     ground_height,
     {
-    "facing": "left",
+    "facing_l": True,
     "pos": screen_size[0] - screen_size[0]//4, ground_height
     }
 )
