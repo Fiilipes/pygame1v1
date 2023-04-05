@@ -2,6 +2,7 @@ import pygame  # pygame module
 import ctypes  # module for getting users data
 # import class Player from components\Player.py
 from components.Player import Player
+from components.animation import Animation
 
 
 def on_platform(player_rect):
@@ -84,7 +85,7 @@ player1 = Player(
     ground_height,
     {
     "facing_l": False,
-    "pos": screen_size[0]//4, ground_height
+    "pos": (screen_size[0]//4, ground_height)
     }
 )
 
@@ -100,56 +101,41 @@ player2 = Player(
     ground_height,
     {
     "facing_l": True,
-    "pos": screen_size[0] - screen_size[0]//4, ground_height
+    "pos": (screen_size[0] - screen_size[0]//4, ground_height)
     }
 )
 
+animate = Animation()
+
 def animation(player):
 
-    if player.inair: # Jump
+    if player.attack:
+        player.index += 0.15
+        if player.index >= len(animate.attack_list):
+            player.attack = False
+            player.index = 0
+        player.surface.surf = animate.attack_list[int(player.index)]
+
+    elif player.inair: # Jump
         player.index += 0.03
-        if player.index >= len(jump_list): player.index = 0
-        player.surface.surf = jump_list[int(player.index)]
+        if player.index >= len(animate.jump_list): player.index = 0
+        player.surface.surf = animate.jump_list[int(player.index)]
 
     elif player.running: # Run
         player.index += 0.16
-        if player.index >= len(run_list): player.index = 0
-        player.surface.surf = run_list[int(player.index)]
+        if player.index >= len(animate.run_list): player.index = 0
+        player.surface.surf = animate.run_list[int(player.index)]
 
     elif player.surface.rect.bottom == ground_height: # Idle
         player.index += 0.07
-        if player.index >= len(idle_list): player.index = 0
-        player.surface.surf = idle_list[int(player.index)]
+        if player.index >= len(animate.idle_list): player.index = 0
+        player.surface.surf = animate.idle_list[int(player.index)]
 
 
     if player.left:
         player.surface.surf = pygame.transform.flip(player.surface.surf, True, False)
     else:
         player.surface.surf = pygame.transform.flip(player.surface.surf, False, False)
-
-run0 = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-00.png"), 4)
-run1 = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-01.png"), 4)
-run2 = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-02.png"), 4)
-run3 = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-03.png"), 4)
-run4 = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-04.png"), 4)
-run5 = pygame.transform.scale_by(pygame.image.load("graphics/player/run/adventurer-run-05.png"), 4)
-run_list = [run0, run1, run2, run3, run4, run5]
-
-idle0 = pygame.transform.scale_by(pygame.image.load("graphics/player/idle/adventurer-idle-00.png"), 4)
-idle1 = pygame.transform.scale_by(pygame.image.load("graphics/player/idle/adventurer-idle-01.png"), 4)
-idle2 = pygame.transform.scale_by(pygame.image.load("graphics/player/idle/adventurer-idle-02.png"), 4)
-idle3 = pygame.transform.scale_by(pygame.image.load("graphics/player/idle/adventurer-idle-03.png"), 4)
-idle_list = [idle0, idle1, idle2, idle3]
-
-jump0 = pygame.transform.scale_by(pygame.image.load("graphics/player/jump/adventurer-jump-00.png"), 4)
-jump1 = pygame.transform.scale_by(pygame.image.load("graphics/player/jump/adventurer-jump-01.png"), 4)
-jump2 = pygame.transform.scale_by(pygame.image.load("graphics/player/jump/adventurer-jump-02.png"), 4)
-jump3 = pygame.transform.scale_by(pygame.image.load("graphics/player/jump/adventurer-jump-03.png"), 4)
-jump_list = [jump2, jump3]
-
-player2.surface.rect.midbottom = (screen_size[0] - screen_size[0]//4, ground_height)
-player2.left = True
-
 
 exit_button_surf = pygame.transform.scale_by(pygame.image.load("graphics/exit_button.png"), 0.04)
 exit_button_rect = exit_button_surf.get_rect(topright=(screen_size[0] - 40, 40))
@@ -167,10 +153,17 @@ while running:
 
         if event.type == pygame.KEYDOWN:
             if game_active:
-                if event.key == pygame.K_w and player1.surface.rect.bottom == ground_height and on_platform(player1.surface.rect):
+                if event.key == pygame.K_w and player1.surface.rect.bottom == ground_height and on_platform(player1.surface.rect) and not player1.attack:
                     player1.gravitation = -21
-                if event.key == pygame.K_UP and player2.surface.rect.bottom == ground_height and on_platform(player2.surface.rect):
+                if event.key == pygame.K_UP and player2.surface.rect.bottom == ground_height and on_platform(player2.surface.rect) and not player2.attack:
                     player2.gravitation = -21
+
+                if event.key == pygame.K_SPACE and not player1.attack:
+                    player1.attack = True
+                    player1.index = 0
+                if event.key == pygame.K_KP_ENTER and not player2.attack:
+                    player2.attack = True
+                    player2.index = 0
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if not game_active:
@@ -184,28 +177,31 @@ while running:
     keys = pygame.key.get_pressed()
 
     if game_active:
-        if keys[pygame.K_a]:
+        if keys[pygame.K_a] and not player1.attack:
             player1.surface.rect.x -= step_size
             player1.running = True
             player1.left = True
-        elif keys[pygame.K_d]:
+        elif keys[pygame.K_d] and not player1.attack:
             player1.surface.rect.x += step_size
             player1.running = True
             player1.left = False
         else:
             player1.running = False
 
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] and not player2.attack:
             player2.surface.rect.x -= step_size
             player2.running = True
             player2.left = True
-        elif keys[pygame.K_RIGHT]:
+        elif keys[pygame.K_RIGHT] and not player1.attack:
             player2.surface.rect.x += step_size
             player2.running = True
             player2.left = False
         else:
             player2.running = False
 
+        if player1.surface.rect.colliderect(player2.surface.rect) and (player1.attack and player1.index >= 3) or (player2.attack and player2.index >= 3):
+            game_active = False
+            player1.attack, player2.attack = False, False
         physics_platform(player1)
         physics_platform(player2)
 

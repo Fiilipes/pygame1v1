@@ -6,6 +6,7 @@ class Player:
         self.inair = False
         self.running = False
         self.falling = False
+        self.attack = False
         self.left = spawn_pos["facing_l"]
         self.index = 0
         self.surface = self.Surface(image, screen_size, ground_height, spawn_pos)
