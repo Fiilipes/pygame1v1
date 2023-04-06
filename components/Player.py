@@ -1,7 +1,7 @@
 import pygame
 
 class Player:
-    def __init__(self, text, image, screen_size, ground_height, spawn_pos):
+    def __init__(self, text, image, screen_size, ground_height, spawn_pos, screen):
         self.gravitation = 0
         self.inair = False
         self.running = False
@@ -11,7 +11,34 @@ class Player:
         self.index = 0
         self.surface = self.Surface(image, screen_size, ground_height, spawn_pos)
         self.text = self.Text(text, screen_size)
+        self.hearts = self.Hearts(3, screen, screen_size, self.left)
+        self.spawn_pos = spawn_pos
 
+
+    class Hearts:
+        def __init__(self, amount, screen, screen_size, left):
+            self.screen = screen
+            self.screen_size = screen_size
+            self.left = left
+            self.filled = {"full": (pygame.transform.scale_by(pygame.image.load("graphics/heart_full.png"), 0.3)),
+                         "empty": (pygame.transform.scale_by(pygame.image.load("graphics/heart_empty.png"), 0.3))
+                         }
+            self.surf = self.filled["full"]
+            self.hearts_list = []
+            self.heart_pos = [50, 50]
+            for i in range(amount):
+                self.hearts_list.append(self.surf) # Surface to the position 0
+        def displaying_hearts(self):
+            if not self.left:
+                for i in range(len(self.hearts_list)):
+                    self.screen.blit(self.hearts_list[i], (220 + i * 90, 50))
+            else:
+                for i in range(len(self.hearts_list)):
+                    self.screen.blit(self.hearts_list[i], (self.screen_size[0] - 220 - i * 90, 50))
+
+        def restarting_hearts(self):
+            for i in range(len(self.hearts_list)):
+                self.hearts_list[i] = self.filled["full"]
 
 
 

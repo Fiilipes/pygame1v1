@@ -5,6 +5,25 @@ from components.Player import Player
 from components.animation import Animation
 
 
+def death(player1, player2):
+    if player1.attack and int(player1.index) == 3 or player2.surface.rect.top > screen_size[1]:
+        for i in range(len(player1.hearts.hearts_list)):
+            if player2.hearts.hearts_list[len(player1.hearts.hearts_list) - i - 1] == player2.hearts.filled["full"]:
+                player2.hearts.hearts_list[len(player1.hearts.hearts_list) - i - 1] = player2.hearts.filled["empty"]
+                break
+    elif player2.attack and int(player2.index) == 3 or player1.surface.rect.top > screen_size[1]:
+        for i in range(len(player2.hearts.hearts_list)):
+            if player1.hearts.hearts_list[len(player2.hearts.hearts_list) - i - 1] == player1.hearts.filled["full"]:
+                player1.hearts.hearts_list[len(player2.hearts.hearts_list) - i - 1] = player1.hearts.filled["empty"]
+                break
+
+    player1.surface.rect.midbottom = player1.spawn_pos["pos"]
+    player2.surface.rect.midbottom = player2.spawn_pos["pos"]
+    player1.left = player1.spawn_pos["facing_l"]
+    player2.left = player2.spawn_pos["facing_l"]
+    player1.attack, player2.attack = False, False
+    player1.falling, player2.falling = False, False
+
 def on_platform(player_rect):
     return ground_right > player_rect.centerx > ground_left
 
@@ -28,9 +47,7 @@ def physics_platform(player):
         player.falling = False
 
     if player.surface.rect.top > screen_size[1]:  # Death
-        player.surface.rect.midbottom = (screen_size[0] // 2, ground_height - player.gravitation)
-        player.falling = False
-        game_active = False
+        death(player1, player2)
 
 user32 = ctypes.windll.user32  # get width and height of the window
 
@@ -86,7 +103,8 @@ player1 = Player(
     {
     "facing_l": False,
     "pos": (screen_size[0]//4, ground_height)
-    }
+    },
+    screen
 )
 
 player2 = Player(
@@ -102,7 +120,8 @@ player2 = Player(
     {
     "facing_l": True,
     "pos": (screen_size[0] - screen_size[0]//4, ground_height)
-    }
+    },
+    screen
 )
 
 animate = Animation()
@@ -144,6 +163,7 @@ play_button_surf = pygame.transform.scale_by(pygame.image.load("graphics/play.pn
 play_button_rect = play_button_surf.get_rect(center=(screen_size[0] // 2, screen_size[1] // 2))
 
 running = True
+print("SUCCESFUL START")
 while running:
     mouse_pos = pygame.mouse.get_pos()
 
@@ -199,9 +219,18 @@ while running:
         else:
             player2.running = False
 
-        if player1.surface.rect.colliderect(player2.surface.rect) and (player1.attack and player1.index >= 3) or (player2.attack and player2.index >= 3):
+        if player1.surface.rect.colliderect(player2.surface.rect) and ((player1.attack and int(player1.index) == 3) or (player2.attack and int(player2.index) == 3)):
+            death(player1, player2)
+
+
+        if player1.hearts.hearts_list[0] == player1.hearts.filled["empty"] or player2.hearts.hearts_list[0] == player2.hearts.filled["empty"]:
             game_active = False
-            player1.attack, player2.attack = False, False
+            player1.hearts.restarting_hearts()
+            player2.hearts.restarting_hearts()
+
+        player1.hearts.displaying_hearts()
+        player2.hearts.displaying_hearts()
+
         physics_platform(player1)
         physics_platform(player2)
 
@@ -241,4 +270,5 @@ while running:
     clock.tick(60)
 
 pygame.quit()
+print("SUCCESFUL END")
 # -> Succesful end
